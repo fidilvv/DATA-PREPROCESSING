@@ -1,0 +1,101 @@
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder 
+
+# Load data
+data = pd.read_csv(r'C:\Users\HAFIS\OneDrive\Desktop\fidil\Employee.csv')
+data.columns = ['Company', 'Age', 'Salary', 'Place', 'Country', 'Gender']
+
+# Print unique values for each column
+for col in data.columns:
+    unique_values = data[col].unique()
+    print(f'Unique values in {col}: {unique_values}')
+    print(f'Number of unique values in {col}: {len(unique_values)}\n')
+
+# Basic statistics
+print(data.describe())
+
+# Rename Company to Organization
+data.rename(columns={'Company': 'Organization'}, inplace=True)
+
+# Check for missing values
+print("Missing values per column:")
+print(data.isnull().sum())
+
+# Fill missing Age with median and Salary with mean
+data['Age'].fillna(data['Age'].median(), inplace=True)
+data['Salary'].fillna(data['Salary'].mean(), inplace=True)
+
+# Fill missing Place and Organization with 'Unknown'
+data['Place'].fillna('Unknown', inplace=True)
+data['Organization'].fillna('Unknown', inplace=True)
+
+# Remove duplicates
+data.drop_duplicates(inplace=True)
+
+# Using IQR to detect outliers in Salary
+Q1 = data['Salary'].quantile(0.25)
+Q3 = data['Salary'].quantile(0.75)
+IQR = Q3 - Q1
+outliers = data[(data['Salary'] < (Q1 - 1.5 * IQR)) | (data['Salary'] > (Q3 + 1.5 * IQR))]
+
+# Display outliers
+print("\nOutliers in Salary:")
+print(outliers)
+
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler, MinMaxScaler, LabelEncoder
+
+# Assuming 'data' has already been cleaned and columns renamed
+# Filter data
+filtered_data = data[(data['Age'] > 40) & (data['Salary'] < 5000)]
+print(filtered_data)
+
+# Scatter plot of Age vs Salary
+plt.figure(figsize=(8,6))
+sns.scatterplot(x='Age', y='Salary', data=data)
+plt.title('Age vs Salary')
+plt.show()
+
+# Count of people from each place
+place_counts = data['Place'].value_counts()
+
+# Bar plot for people by place
+plt.figure(figsize=(10,6))
+place_counts.plot(kind='bar')
+plt.title('Number of People from Each Place')
+plt.xlabel('Place')
+plt.ylabel('Count')
+plt.show()
+
+# Label encoding for Gender
+le = LabelEncoder()
+data['Gender'] = le.fit_transform(data['Gender'])
+
+# One-hot encoding for Organization (was previously 'Company') and Place
+data = pd.get_dummies(data, columns=['Organization', 'Place'], drop_first=True)
+
+# StandardScaler for scaling features
+scaler = StandardScaler()
+scaled_data_standard = scaler.fit_transform(data[['Age', 'Salary']])
+scaled_data_standard = pd.DataFrame(scaled_data_standard, columns=['Age_scaled', 'Salary_scaled'])
+
+# Concatenate scaled data back to original
+data = pd.concat([data, scaled_data_standard], axis=1)
+
+# MinMaxScaler for scaling features
+minmax_scaler = MinMaxScaler()
+scaled_data_minmax = minmax_scaler.fit_transform(data[['Age', 'Salary']])
+scaled_data_minmax = pd.DataFrame(scaled_data_minmax, columns=['Age_minmax', 'Salary_minmax'])
+
+# Concatenate scaled data back to original
+data = pd.concat([data, scaled_data_minmax], axis=1)
+
+# View the cleaned and processed dataset
+print(data.head())
